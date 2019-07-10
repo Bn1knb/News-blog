@@ -1,5 +1,6 @@
 package com.bn1knb.newsblog.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Entity
 public class User {
@@ -27,7 +29,9 @@ public class User {
     List<Post> posts;
     @OneToMany(mappedBy = "user")
     List<Comment> comments;
+    @Enumerated(EnumType.STRING)
     private State state;
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @PrePersist
