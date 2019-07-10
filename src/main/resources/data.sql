@@ -1,0 +1,1 @@
+INSERT INTO user (id , username, password, role, state, first_name, last_name) SELECT 1, 'ADMIN', 'ADMIN', 'ROLE_ADMIN', 'ACTIVE', 'ADMIN', 'ADMIN' WHERE NOT EXISTS (SELECT * FROM user WHERE username='ADMIN');
