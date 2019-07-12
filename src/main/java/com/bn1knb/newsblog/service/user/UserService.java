@@ -7,4 +7,6 @@ public interface UserService {
     void save(UserDto userDto);
 
     User findUserById(Long id);
+
+    User findUserByName(String username);
 }

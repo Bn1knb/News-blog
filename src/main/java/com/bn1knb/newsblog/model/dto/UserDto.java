@@ -5,6 +5,7 @@ import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class UserDto implements Serializable {
         this.state = user.getState();
     }
 
-    public User toUser() {
+    public User toUser(PasswordEncoder encoder) {
         return  User.builder()
                 .id(id)
                 .username(username)

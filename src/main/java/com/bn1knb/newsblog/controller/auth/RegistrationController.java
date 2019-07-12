@@ -4,11 +4,9 @@ import com.bn1knb.newsblog.model.dto.UserDto;
 import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/register")
@@ -21,7 +19,7 @@ public class RegistrationController {
         this.userService = userService;
     }
 
-    @RequestMapping(method = RequestMethod.POST, produces = {"application/json", "text/html"})
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<UserDto> register(@RequestBody UserDto userDto) {
 
         userService.save(userDto);
