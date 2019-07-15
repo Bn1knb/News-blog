@@ -24,7 +24,6 @@ public class RegistrationController {
 
         userService.save(userDto);
         userDto = new UserDto(userService.findUserById(userDto.getId()));
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
-
 }
