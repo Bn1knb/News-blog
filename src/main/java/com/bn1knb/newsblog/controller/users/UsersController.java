@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/users")
 public class UsersController {
 
-    @Autowired
     private final UserService userService;
 
+    @Autowired
     public UsersController(UserService userService) {
         this.userService = userService;
     }
@@ -26,5 +26,4 @@ public class UsersController {
 
         return new ResponseEntity<>(user, HttpStatus.FOUND);
     }
-
 }

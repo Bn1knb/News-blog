@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserById(Long id) {
         return userRepository
-                .findOneById(id)
+                .findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id:" + id + " not found")); //TODO create custom controllerAdvice
     }
 

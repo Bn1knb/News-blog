@@ -1,4 +1,4 @@
-package security.config;
+package com.bn1knb.newsblog.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anonymous()
                 .antMatchers(HttpMethod.POST, "/register")
                 .anonymous()
-                .and()
+                .and().csrf().disable()
                 .formLogin().permitAll();
     }
 

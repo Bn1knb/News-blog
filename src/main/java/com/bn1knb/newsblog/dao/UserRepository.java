@@ -12,8 +12,6 @@ import java.util.Optional;
 public interface UserRepository extends PagingAndSortingRepository<User, Long> {
     List<User> findAllByRole(Role role);
 
-    Optional<User> findOneById(Long id);
-
     Optional<User> findOneByUsername(String username);
 
     Optional<User> findByEmail(String email);
