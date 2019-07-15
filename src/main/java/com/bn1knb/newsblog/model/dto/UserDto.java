@@ -42,7 +42,7 @@ public class UserDto implements Serializable {
         return  User.builder()
                 .id(id)
                 .username(username)
-                .password(password)
+                .password(encoder.encode(password))
                 .firstName(firstName)
                 .lastName(lastName)
                 .createdAt(createdAt)

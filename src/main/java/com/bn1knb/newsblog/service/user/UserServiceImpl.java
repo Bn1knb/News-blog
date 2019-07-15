@@ -8,6 +8,8 @@ import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
 import com.bn1knb.newsblog.model.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,8 +48,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User with name:" + username + " not found"));
     }
 
+    @Override
+    public Page<User> findAllPerPage(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
     private void checkEmailExist(String email) {
-        if (userRepository.findByEmail(email).isPresent())  {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new EmailExistsException();
         }
     }
