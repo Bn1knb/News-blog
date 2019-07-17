@@ -1,12 +1,13 @@
 package com.bn1knb.newsblog.service.user;
 
 import com.bn1knb.newsblog.dao.UserRepository;
-import com.bn1knb.newsblog.exception.EmailExistsException;
+import com.bn1knb.newsblog.exception.EmailAlreadyRegisteredException;
 import com.bn1knb.newsblog.exception.UserNotFoundException;
+import com.bn1knb.newsblog.exception.UsernameAlreadyRegisteredException;
 import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
-import com.bn1knb.newsblog.model.dto.UserDto;
+import com.bn1knb.newsblog.model.dto.UserRegistrationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,11 +28,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void save(UserDto userDto) {
-        checkEmailExist(userDto.getEmail());
-        userDto.setRole(Role.ROLE_USER);
-        userDto.setState(State.INACTIVE);
-        userRepository.save(userDto.toUser(passwordEncoder));
+    public void register(UserRegistrationDto userRegistrationDto) {
+        User user = userRegistrationDto.toUser(passwordEncoder);
+        user.setRole(Role.ROLE_USER);
+        user.setState(State.INACTIVE);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void save(User user) {
+        userRepository.save(user);
+    }
+
+    @Override
+    public void delete(Long id) {
+        userRepository.delete(this.findUserById(id));
     }
 
     @Override
@@ -53,9 +64,22 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll(pageable);
     }
 
-    private void checkEmailExist(String email) {
+    @Override
+    public void checkEmailAlreadyRegistered(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new EmailExistsException();
+            throw new EmailAlreadyRegisteredException();
         }
+    }
+
+    @Override
+    public void checkUsernameAlreadyRegistered(String username) {
+        if (userRepository.findOneByUsername(username).isPresent()) {
+            throw new UsernameAlreadyRegisteredException();
+        }
+    }
+
+    @Override
+    public void checkUserId(Long id) {
+        findUserById(id);
     }
 }

@@ -5,12 +5,8 @@ import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,24 +15,39 @@ import java.util.stream.Collectors;
 public class UsersController {
 
     private final UserService userService;
-    private final Pageable FIRST_PAGE_WITH_FIVE_ElEMENTS = PageRequest.of(0, 5);
+    private final Pageable FIRST_PAGE_WITH_FIVE_ELEMENTS = PageRequest.of(0, 5);
 
     @Autowired
     public UsersController(UserService userService) {
         this.userService = userService;
     }
 
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<User> userById(@PathVariable("id") Long id) {
-        User user = userService.findUserById(id);
-
-        return new ResponseEntity<>(user, HttpStatus.FOUND);
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable("id") Long id) {
+        return userService.findUserById(id);
     }
 
-    @GetMapping //TODO add params and other methods
-    List<User> users() {
-        return userService.findAllPerPage(FIRST_PAGE_WITH_FIVE_ElEMENTS)
+    //TODO check type page<>
+    //TODO add params and other methods
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.findAllPerPage(FIRST_PAGE_WITH_FIVE_ELEMENTS)
                 .stream()
                 .collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable("id") Long id) {
+        userService.delete(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> editUser(@RequestBody User editedUser, @PathVariable("id") Long id) {
+        userService.checkUserId(id);
+        userService.save(editedUser);
+
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }
