@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Bean //TODO solve problem with encrypted admin password
+    @Bean
     PasswordEncoder getPasEncoder() {
         return new BCryptPasswordEncoder();
     }
