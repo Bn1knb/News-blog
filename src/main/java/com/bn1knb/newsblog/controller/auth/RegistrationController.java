@@ -28,7 +28,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity<User> register(@RequestBody UserRegistrationDto userRegistrationDto) {
+    public ResponseEntity<User> register(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
         userService.checkEmailAlreadyRegistered(userRegistrationDto.getEmail());
         userService.checkUsernameAlreadyRegistered(userRegistrationDto.getUsername());
         userService.register(userRegistrationDto);

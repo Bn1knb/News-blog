@@ -4,8 +4,8 @@ import com.bn1knb.newsblog.model.User;
 import com.bn1knb.newsblog.model.dto.UserRegistrationDto;
 import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.List;
-import java.util.stream.Collectors;
 
+@Validated
 @RequestMapping("/users")
+@RestController
 public class UsersController {
 
     private final UserService userService;
-    private final Pageable FIRST_PAGE_WITH_FIVE_ELEMENTS = PageRequest.of(0, 5);
+    private static final int DATA_PER_PAGE = 5;
 
     @Autowired
     public UsersController(UserService userService) {
@@ -32,13 +32,12 @@ public class UsersController {
         return userService.findUserById(id);
     }
 
-    //TODO check type page<>
-    //TODO add params and other methods
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.findAllPerPage(FIRST_PAGE_WITH_FIVE_ELEMENTS)
-                .stream()
-                .collect(Collectors.toList());
+    public Page<User> getAllUsers(@RequestParam(value = "page", required = false) Integer page) {
+        if (page == null) {
+            page = 0;
+        }
+        return userService.findAllPerPage(PageRequest.of(page, DATA_PER_PAGE));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

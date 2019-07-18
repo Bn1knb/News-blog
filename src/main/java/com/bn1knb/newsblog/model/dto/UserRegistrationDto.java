@@ -8,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 
@@ -17,19 +16,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UserRegistrationDto implements Serializable {
 
-    @NotNull
+    @NotBlank
     @Size(min = 3, max = 10)
     private String username;
-    @NotNull
+    @NotBlank
     @Size(min = 6, max = 25)
     private String password;
-    @NotBlank(message = "Please provide a name")
+    @NotBlank()
     @Size(min = 1)
     private String firstName;
-    @NotNull
+    @NotBlank
     @Size(min = 1)
     private String lastName;
-    @NotNull
+    @NotBlank
     @Email
     private String email;
 

@@ -68,6 +68,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> findAllPerPage(Pageable pageable) {
+        if (userRepository.findAll(pageable).isEmpty()) {
+            //TODO throw new PageNotFoundException();
+        }
         return userRepository.findAll(pageable);
     }
 
