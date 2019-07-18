@@ -4,6 +4,7 @@ import com.bn1knb.newsblog.dao.UserRepository;
 import com.bn1knb.newsblog.exception.EmailAlreadyRegisteredException;
 import com.bn1knb.newsblog.exception.UserNotFoundException;
 import com.bn1knb.newsblog.exception.UsernameAlreadyRegisteredException;
+import com.bn1knb.newsblog.exception.UsernameNotFoundException;
 import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
@@ -11,7 +12,6 @@ import com.bn1knb.newsblog.model.dto.UserRegistrationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,17 +46,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void update(Long userToUpdateId, UserRegistrationDto updatedDto) {
+        User updatedUser = updatedDto.toUser(passwordEncoder);
+        updatedUser.setId(userToUpdateId);
+        save(updatedUser);
+    }
+
+    @Override
     public User findUserById(Long id) {
         return userRepository
                 .findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id:" + id + " not found")); //TODO create custom controllerAdvice
+                .orElseThrow(UserNotFoundException::new); //TODO create custom controllerAdvice
     }
 
     @Override
     public User findUserByName(String username) {
         return userRepository
                 .findOneByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with name:" + username + " not found"));
+                .orElseThrow(UsernameNotFoundException::new);
     }
 
     @Override

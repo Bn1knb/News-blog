@@ -6,20 +6,32 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRegistrationDto implements Serializable {
 
+    @NotNull
+    @Size(min = 3, max = 10)
     private String username;
+    @NotNull
+    @Size(min = 6, max = 25)
     private String password;
+    @NotBlank(message = "Please provide a name")
+    @Size(min = 1)
     private String firstName;
+    @NotNull
+    @Size(min = 1)
     private String lastName;
+    @NotNull
+    @Email
     private String email;
-    private Date createdAt;
 
     public void toUserDto(User user) {
         this.username = user.getUsername();
@@ -27,7 +39,6 @@ public class UserRegistrationDto implements Serializable {
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.email = user.getEmail();
-        this.createdAt = user.getCreatedAt();
     }
 
     public User toUser(PasswordEncoder encoder) {
@@ -36,7 +47,6 @@ public class UserRegistrationDto implements Serializable {
                 .password(encoder.encode(password))
                 .firstName(firstName)
                 .lastName(lastName)
-                .createdAt(createdAt)
                 .email(email)
                 .build();
     }
