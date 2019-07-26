@@ -1,11 +1,13 @@
 package com.bn1knb.newsblog.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -14,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class User {
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +28,10 @@ public class User {
     private String email;
     private Date createdAt;
     @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties(value = "user")
     List<Post> posts;
     @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties(value = "user")
     List<Comment> comments;
     @Enumerated(EnumType.STRING)
     private State state;
@@ -46,7 +50,7 @@ public class User {
     }
 
     @PrePersist
-    void setCreationDate() {
+    private void setCreationDate() {
         this.createdAt = new Date();
     }
 }

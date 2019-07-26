@@ -2,9 +2,9 @@ package com.bn1knb.newsblog.controller.auth;
 
 import com.bn1knb.newsblog.model.User;
 import com.bn1knb.newsblog.model.dto.UserRegistrationDto;
+import com.bn1knb.newsblog.model.hateoas.UserResource;
 import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +19,7 @@ import java.net.URI;
 @RequestMapping(value = "/register")
 public class RegistrationController {
 
-    @Qualifier(value = "UserServiceImpl")
+
     private final UserService userService;
 
     @Autowired
@@ -28,25 +28,25 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity<User> register(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
+    public ResponseEntity<UserResource> register(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
         userService.checkEmailAlreadyRegistered(userRegistrationDto.getEmail());
         userService.checkUsernameAlreadyRegistered(userRegistrationDto.getUsername());
         userService.register(userRegistrationDto);
 
         User user = userService
-                .findUserByName(
+                .findUserByUsername(
                         userRegistrationDto
                                 .getUsername()
                 );
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/{id}")
+                .path("/{userId}")
                 .buildAndExpand(user.getId())
                 .toUri();
 
         return ResponseEntity
                 .created(location)
-                .build();
+                .body(new UserResource(user));
     }
 }
