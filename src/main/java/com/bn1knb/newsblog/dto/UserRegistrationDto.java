@@ -1,4 +1,4 @@
-package com.bn1knb.newsblog.model.dto;
+package com.bn1knb.newsblog.dto;
 
 import com.bn1knb.newsblog.model.User;
 import lombok.AllArgsConstructor;
@@ -31,14 +31,6 @@ public class UserRegistrationDto implements Serializable {
     @NotBlank
     @Email
     private String email;
-
-    public void toUserDto(User user) {
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.email = user.getEmail();
-    }
 
     public User toUser(PasswordEncoder encoder) {
         return User.builder()
