@@ -18,7 +18,7 @@ import java.util.Date;
 public class Comment implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Lob
     private String content;
@@ -26,10 +26,10 @@ public class Comment implements Serializable {
     private Byte[] attachedFiles;
     private Date createdAt;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonIgnoreProperties(value = {"comments","isApproved","content","attachedFile"})
+    @JsonIgnoreProperties(value = {"comments", "approved", "content", "attachedFile", "user"})
     private Post post;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonIgnoreProperties(value = {"posts","comments","state","role","password","email","createdAt"})
+    @JsonIgnoreProperties(value = {"posts", "comments", "state", "role", "password", "email", "createdAt", "id", "firstName", "lastName"})
     private User user;
 
     @PrePersist

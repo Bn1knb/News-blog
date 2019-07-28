@@ -28,7 +28,7 @@ public class Post implements Serializable {
     private String content;
     private Date createdAt;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonIgnoreProperties(value = {"posts","comments","state","role","password","email","createdAt"})
+    @JsonIgnoreProperties(value = {"posts", "comments", "state", "role", "password", "email", "createdAt", "firstName", "lastName"})
     private User user;
     @OneToMany(mappedBy = "post")
     @JsonIgnoreProperties(value = "post")

@@ -1,13 +1,11 @@
 package com.bn1knb.newsblog.service.comment;
 
+import com.bn1knb.newsblog.dto.CommentDto;
 import com.bn1knb.newsblog.model.Comment;
 import com.bn1knb.newsblog.model.Post;
 import com.bn1knb.newsblog.model.User;
-import com.bn1knb.newsblog.model.dto.CommentDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Map;
 
 public interface CommentService {
     Comment findCommentById(Long id);
@@ -16,13 +14,15 @@ public interface CommentService {
 
     Page<Comment> findCommentOfTheCurrentPost(Post post, Pageable pageable);
 
-    void comment(CommentDto newComment, User author, Post post);
+    void comment(Comment comment);
 
-    void delete(Long id);
+    void delete(Long id, boolean hasPermission);
 
-    void update(Long id, CommentDto editedComment);
-
-    void patch(Map<String, String> fields, Long id);
+    void update(Long id, CommentDto editedComment, User author);
 
     void save(Comment comment);
+
+    boolean isAuthor(Long commentId, User author);
+
+    boolean hasPermissionToDelete(Long commentId, User currentUser);
 }

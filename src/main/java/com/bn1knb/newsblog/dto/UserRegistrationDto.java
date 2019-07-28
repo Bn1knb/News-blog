@@ -1,8 +1,9 @@
-package com.bn1knb.newsblog.model.dto;
+package com.bn1knb.newsblog.dto;
 
 import com.bn1knb.newsblog.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.validation.constraints.Email;
@@ -12,6 +13,7 @@ import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserRegistrationDto implements Serializable {
 
     @NotBlank
@@ -29,14 +31,6 @@ public class UserRegistrationDto implements Serializable {
     @NotBlank
     @Email
     private String email;
-
-    public void toUserDto(final User user) {
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.email = user.getEmail();
-    }
 
     public User toUser(PasswordEncoder encoder) {
         return User.builder()

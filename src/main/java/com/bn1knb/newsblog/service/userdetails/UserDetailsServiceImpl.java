@@ -44,7 +44,6 @@ public class UserDetailsServiceImpl implements CustomUserDetailsService {
 
     @Override
     public Collection<? extends GrantedAuthority> mapRolesToAuthorities(List<String> roles) {
-
         return roles
                 .stream()
                 .map(SimpleGrantedAuthority::new)

@@ -1,23 +1,23 @@
 package com.bn1knb.newsblog.service.comment;
 
 import com.bn1knb.newsblog.dao.CommentRepository;
+import com.bn1knb.newsblog.dto.CommentDto;
 import com.bn1knb.newsblog.exception.CommentNotFoundException;
 import com.bn1knb.newsblog.model.Comment;
 import com.bn1knb.newsblog.model.Post;
+import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.User;
-import com.bn1knb.newsblog.model.dto.CommentDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
-
-import java.lang.reflect.Field;
-import java.util.Map;
 
 @Service
 public class CommentServiceImpl implements CommentService {
+
     private final CommentRepository commentRepository;
+    private static final String ACCESS_DENIED_MESSAGE = "Access denied";
 
     @Autowired
     public CommentServiceImpl(CommentRepository commentRepository) {
@@ -40,44 +40,60 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void comment(CommentDto newCommentDto, User author, Post post) {
-        Comment newComment = newCommentDto.toComment(author, post);
+    public void comment(Comment newComment) {
         save(newComment);
     }
 
     @Override
-    public void delete(Long id) {
-        assert commentRepository.findById(id).isPresent();
-        commentRepository.deleteById(id);
+    public void delete(Long commentId, boolean hasPermission) {
+        if (hasPermission) {
+            Comment commentToDelete = findCommentById(commentId);
+            commentRepository.delete(commentToDelete);
+        } else {
+            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+        }
     }
 
     @Override
-    public void update(Long id, CommentDto editedCommentDto) {
-        Comment commentToUpdate = findCommentById(id);
-        Comment editedComment = editedCommentDto.toComment(commentToUpdate.getUser(), commentToUpdate.getPost());
+    public void update(Long id, CommentDto editedCommentDto, User user) {
+        if (isAuthor(id, user)) {
+            Comment commentToUpdate = findCommentById(id);
+            Comment editedComment = editedCommentDto.toComment(commentToUpdate.getUser(), commentToUpdate.getPost());
 
-        editedComment.setCreatedAt(commentToUpdate.getCreatedAt());
-        editedComment.setId(id);
+            editedComment.setPost(commentToUpdate.getPost());
+            editedComment.setUser(commentToUpdate.getUser());
+            editedComment.setCreatedAt(commentToUpdate.getCreatedAt());
+            editedComment.setId(id);
 
-        save(editedComment);
-    }
-
-    @Override
-    public void patch(Map<String, String> fields, Long id) {
-        Comment comment = findCommentById(id);
-
-        fields.forEach((k, v) -> {
-            Field field = ReflectionUtils.findField(Comment.class, k);
-            assert field != null;
-            ReflectionUtils.makeAccessible(field);
-            ReflectionUtils.setField(field, comment, v);
-        });
-
-        save(comment);
+            save(editedComment);
+        } else {
+            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+        }
     }
 
     @Override
     public void save(Comment comment) {
         commentRepository.save(comment);
+    }
+
+    @Override
+    public boolean isAuthor(Long commentId, User author) {
+        Comment currentComment = findCommentById(commentId);
+        return currentComment.getUser().getId().equals(author.getId());
+    }
+
+    @Override
+    public boolean hasPermissionToDelete(Long commentId, User currentUser) {
+        Comment currentComment = findCommentById(commentId);
+        return currentComment
+                .getUser()
+                .getId()
+                .equals(currentUser.getId()) ||
+                currentUser
+                        .getRole()
+                        .equals(Role.ROLE_MODERATOR) ||
+                currentUser
+                        .getRole()
+                        .equals(Role.ROLE_ADMIN);
     }
 }

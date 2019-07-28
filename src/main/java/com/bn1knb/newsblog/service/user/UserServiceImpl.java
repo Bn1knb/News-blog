@@ -2,15 +2,16 @@ package com.bn1knb.newsblog.service.user;
 
 import com.bn1knb.newsblog.dao.PostRepository;
 import com.bn1knb.newsblog.dao.UserRepository;
+import com.bn1knb.newsblog.dto.UserRegistrationDto;
 import com.bn1knb.newsblog.exception.*;
 import com.bn1knb.newsblog.model.Post;
 import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
-import com.bn1knb.newsblog.model.dto.UserRegistrationDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -24,6 +25,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
+    private static final String USERNAME_FIELD = "username";
+    private static final String EMAIL_FIELD = "email";
+    private static final String ACCESS_DENIED_MESSAGE = "Access denied";
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, PostRepository postRepository) {
@@ -46,22 +50,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long id) {
-        assert userRepository.findById(id).isPresent();//TODO check better way
-        userRepository.deleteById(id);
+    public void delete(Long id, boolean hasPermission) throws AccessDeniedException {
+        if (hasPermission) {
+            User user = findUserById(id);
+            user.setState(State.DELETED);
+            save(user);
+        } else {
+            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+        }
     }
 
     @Override
-    public void update(Long id, UserRegistrationDto updatedDto) {
-        User userToUpdate = findUserById(id);
-        User updatedUser = updatedDto.toUser(passwordEncoder);
+    public void update(Long id, UserRegistrationDto updatedDto, User currentUser) throws AccessDeniedException {
+        if (hasPermissionToUpdate(currentUser, id)) {
+            User userToUpdate = findUserById(id);
+            User updatedUser = updatedDto.toUser(passwordEncoder);
 
-        updatedUser.setRole(userToUpdate.getRole());
-        updatedUser.setState(userToUpdate.getState());
-        updatedUser.setCreatedAt(userToUpdate.getCreatedAt());
-        updatedUser.setId(id);
+            updatedUser.setRole(userToUpdate.getRole());
+            updatedUser.setState(userToUpdate.getState());
+            updatedUser.setCreatedAt(userToUpdate.getCreatedAt());
+            updatedUser.setId(id);
 
-        save(updatedUser);
+            save(updatedUser);
+        } else {
+            throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
+        }
     }
 
     @Override             //TODO validate map values
@@ -74,11 +87,11 @@ public class UserServiceImpl implements UserService {
             assert field != null;
             ReflectionUtils.makeAccessible(field);
 
-            if (field.getName().equals("email")) {
+            if (field.getName().equals(EMAIL_FIELD)) {
                 checkEmailAlreadyRegistered(v);
             }
 
-            if (field.getName().equals("username")) {
+            if (field.getName().equals(USERNAME_FIELD)) {
                 checkUsernameAlreadyRegistered(v);
             }
 
@@ -109,8 +122,8 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .findAny()
                 .filter(post -> post
-                                    .getId()
-                                    .equals(postId))
+                        .getId()
+                        .equals(postId))
                 .orElseThrow(PostNotFoundException::new);
     }
 
@@ -143,5 +156,15 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findOneByUsername(username).isPresent()) {
             throw new UsernameAlreadyRegisteredException();
         }
+    }
+
+    @Override
+    public boolean hasPermissionToDelete(User currentUser, Long userToDeleteId) {
+        return currentUser.getId().equals(userToDeleteId) || currentUser.getRole().equals(Role.ROLE_ADMIN);
+    }
+
+    @Override
+    public boolean hasPermissionToUpdate(User currentUser, Long userToPatchId) {
+        return currentUser.getId().equals(userToPatchId);
     }
 }

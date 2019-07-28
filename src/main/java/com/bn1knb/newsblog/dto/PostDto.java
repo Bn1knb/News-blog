@@ -1,30 +1,32 @@
-package com.bn1knb.newsblog.model.dto;
+package com.bn1knb.newsblog.dto;
 
-import com.bn1knb.newsblog.model.Comment;
 import com.bn1knb.newsblog.model.Post;
 import com.bn1knb.newsblog.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
-
 @Data
 @AllArgsConstructor
-public class CommentDto implements Serializable {
+@NoArgsConstructor
+public class PostDto implements Serializable {
 
     @NotBlank
+    private String headline;
+    @Size(min = 10)
     private String content;
-    private Byte[] attachedFiles;
+    private Byte[] attachedFile;
 
-    public Comment toComment(User author, Post post) {
-        return Comment
+    public Post toPost(User author) {
+        return Post
                 .builder()
+                .headline(headline)
                 .content(content)
-                .attachedFiles(attachedFiles)
                 .user(author)
-                .post(post)
+                .attachedFile(attachedFile)
                 .build();
     }
-
 }

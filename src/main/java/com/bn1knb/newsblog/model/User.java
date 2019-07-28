@@ -1,5 +1,6 @@
 package com.bn1knb.newsblog.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +32,7 @@ public class User implements Serializable {
     @JsonIgnoreProperties(value = "user")
     List<Post> posts;
     @OneToMany(mappedBy = "user")
-    @JsonIgnoreProperties(value = "user")
+    @JsonIgnore
     List<Comment> comments;
     @Enumerated(EnumType.STRING)
     private State state;
