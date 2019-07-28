@@ -1,7 +1,7 @@
 # Newspapper blog
 Java Spring based RESTfull application to read, create, and update news 
 <p>Creted to achive a good understanding of rest applications and Spring framework</p>
-<h3>Tecnologies:</h3>
+<h3>Tecnology stack:</h3>
 
 <p><a href="https://spring.io/">Spring Framework</a></p>
 <p>with:</p>
@@ -25,3 +25,5 @@ Authority Roles:
 	</p>
 </li>
 </ul>
+<p><a href="https://projectlombok.org/">Lombok</a></p>
+<p><a href="https://jwt.io/">JWT</a></p>
