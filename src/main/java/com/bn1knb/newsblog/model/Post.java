@@ -27,13 +27,14 @@ public class Post implements Serializable {
     @Lob
     private String content;
     private Date createdAt;
+    private boolean isApproved;
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnoreProperties(value = {"posts", "comments", "state", "role", "password", "email", "createdAt", "firstName", "lastName"})
     private User user;
     @OneToMany(mappedBy = "post")
     @JsonIgnoreProperties(value = "post")
     private List<Comment> comments;
-    private boolean isApproved;
+
 
     @PrePersist
     private void setCreationDate() {

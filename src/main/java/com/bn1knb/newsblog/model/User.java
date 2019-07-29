@@ -29,7 +29,7 @@ public class User implements Serializable {
     private String email;
     private Date createdAt;
     @OneToMany(mappedBy = "user")
-    @JsonIgnoreProperties(value = "user")
+    @JsonIgnore
     List<Post> posts;
     @OneToMany(mappedBy = "user")
     @JsonIgnore

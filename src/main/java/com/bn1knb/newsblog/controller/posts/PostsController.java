@@ -43,37 +43,35 @@ public class PostsController {
     }
 
     @PostMapping
-    public ResponseEntity<PostResource> post(@Valid @RequestBody PostDto postDto, @RequestParam(value = "file", required = false) MultipartFile file, Principal principal) throws IOException {
-        User currentUser = userService.findUserByUsername(principal.getName());
-        Post newPost = postDto.toPost(currentUser);
-//        byte[] newFile = file.getBytes();
-        postService.post(newPost);
+    public ResponseEntity<PostResource> post(@Valid @RequestBody PostDto postDto,
+                                             @RequestParam(value = "file", required = false) MultipartFile file,
+                                             Principal principal) throws IOException {
+        //byte[] newFile = file.getBytes();
+        Post published = postService.save(postDto, principal.getName());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{postId}")
-                .buildAndExpand(newPost.getId())
+                .buildAndExpand(published.getId())
                 .toUri();
 
         return ResponseEntity
                 .created(location)
-                .body(new PostResource(newPost));
+                .body(new PostResource(published));
     }
 
     @GetMapping
     public ResponseEntity<Resources<PostResource>> getAllPosts(@PageableDefault(size = 5) Pageable pageable) {
-        List<PostResource> posts = postService
-                .findAllPerPage(pageable)
-                .stream()
-                .map(PostResource::new)
-                .collect(Collectors.toList());
+
         Link selfLink = linkTo(
                 methodOn(PostsController.class)
                         .getAllPosts(pageable))
                 .withSelfRel();
 
+        Resources<PostResource> resources = new Resources<>(postService.findAllPerPage(pageable), selfLink);
+
         return ResponseEntity
-                .ok(new Resources<>(posts, selfLink));
+                .ok(resources);
     }
 
     @GetMapping("/{postId}")
@@ -85,7 +83,8 @@ public class PostsController {
     }
 
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Post> deletePost(@PathVariable("postId") Long postToDeleteId, Principal principal) throws AccessDeniedException {
+    public ResponseEntity<Post> deletePost(@PathVariable("postId") Long postToDeleteId,
+                                           Principal principal) throws AccessDeniedException {
         User currentUser = userService.findUserByUsername(principal.getName()); //TODO pod kapot
         postService.delete(postToDeleteId, postService.hasPermissionToDelete(postToDeleteId, currentUser));
 
@@ -95,7 +94,8 @@ public class PostsController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<PostResource> editPost(@Valid @RequestBody PostDto editedPost, @PathVariable("postId") Long postId, Principal principal) {
+    public ResponseEntity<PostResource> editPost(@Valid @RequestBody PostDto editedPost,
+                                                 @PathVariable("postId") Long postId, Principal principal) {
         User currentUser = userService.findUserByUsername(principal.getName());
         postService.update(postId, editedPost, currentUser);
         PostResource post = new PostResource(postService.findPostById(postId));
@@ -106,7 +106,8 @@ public class PostsController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
     @PatchMapping("/{postId}")
-    public ResponseEntity<PostResource> patchPost(@PathVariable("postId") Long postId, @RequestBody Map<String, String> fields) {
+    public ResponseEntity<PostResource> patchPost(@PathVariable("postId") Long postId,
+                                                  @RequestBody Map<String, String> fields) {
         postService.patch(fields, postId);
         PostResource post = new PostResource(postService.findPostById(postId));
 

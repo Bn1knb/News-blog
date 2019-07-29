@@ -42,7 +42,7 @@ public class UsersController {
     public ResponseEntity<Resources<UserResource>> getAllUsers(@PageableDefault(size = 5) Pageable pageable) {
         List<UserResource> users = userService
                 .findAllPerPage(pageable)
-                .stream()
+                .stream()  //TODO засунуть в юзер ресур подобное чтобы были не посты а пост ресурсы с линками на себя
                 .map(UserResource::new)
                 .collect(Collectors.toList());
 

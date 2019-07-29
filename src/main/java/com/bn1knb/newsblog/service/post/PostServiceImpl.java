@@ -1,31 +1,36 @@
 package com.bn1knb.newsblog.service.post;
 
 import com.bn1knb.newsblog.dao.PostRepository;
+import com.bn1knb.newsblog.dto.PostDto;
 import com.bn1knb.newsblog.exception.PageNotFoundException;
 import com.bn1knb.newsblog.exception.PostNotFoundException;
 import com.bn1knb.newsblog.model.Post;
-import com.bn1knb.newsblog.dto.PostDto;
 import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.User;
+import com.bn1knb.newsblog.model.hateoas.PostResource;
+import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
-public class PostServiceImpl implements PostService {
+public class PostServiceImpl implements com.bn1knb.newsblog.service.post.PostService {
 
     private final PostRepository postRepository;
+    private final UserService userService;
     private static final String ACCESS_DENIED_MESSAGE = "Access denied";
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository) {
+    public PostServiceImpl(PostRepository postRepository, UserService userService) {
         this.postRepository = postRepository;
+        this.userService = userService;
     }
 
     @Override
@@ -36,17 +41,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Page<Post> findAllPerPage(Pageable pageable) {
+    public List<PostResource> findAllPerPage(Pageable pageable) {
         if (postRepository.findAll(pageable).isEmpty()) {
             throw new PageNotFoundException();
         }
 
-        return postRepository.findAll(pageable);
-    }
-
-    @Override
-    public void post(Post post) {
-        save(post);
+        return postRepository.findAll(pageable)
+                .stream()
+                .map(PostResource::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -60,7 +63,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void update(Long postToUpdateId, PostDto editedPostDto, User author) {
+    public Post update(Long postToUpdateId, PostDto editedPostDto, User author) {
         if (isAuthor(postToUpdateId, author)) {
             Post postToUpdate = findPostById(postToUpdateId);
             Post editedPost = editedPostDto.toPost(postToUpdate.getUser());
@@ -70,30 +73,37 @@ public class PostServiceImpl implements PostService {
             editedPost.setApproved(postToUpdate.isApproved());
             editedPost.setId(postToUpdateId);
 
-            save(editedPost);
+            return save(editedPost);
         } else {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }
     }
 
     @Override             //TODO validate map values
-    public void patch(Map<String, String> fields, Long id) {
+    public Post patch(Map<String, String> fields, Long id) {
 
-        Post post = findPostById(id);
+        Post editedPost = findPostById(id);
 
         fields.forEach((k, v) -> {
             Field field = ReflectionUtils.findField(Post.class, k);
             assert field != null;
             ReflectionUtils.makeAccessible(field);
-            ReflectionUtils.setField(field, post, v);
+            ReflectionUtils.setField(field, editedPost, v);
         });
 
-        save(post);
+        return save(editedPost);
     }
 
     @Override
-    public void save(Post post) {
-        postRepository.save(post);
+    public Post save(PostDto postDto, String authorName) {
+        User author = userService.findUserByUsername(authorName);
+        Post newPost = postDto.toPost(author);
+        return postRepository.save(newPost);
+    }
+
+    @Override
+    public Post save(Post post) {
+        return postRepository.save(post);
     }
 
     @Override
