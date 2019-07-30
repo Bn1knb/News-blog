@@ -23,7 +23,7 @@ public class Comment implements Serializable {
     @Lob
     private String content;
     @Lob
-    private Byte[] attachedFiles;
+    private byte[] attachedFiles;
     private Date createdAt;
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnoreProperties(value = {"comments", "approved", "content", "attachedFile", "user"})

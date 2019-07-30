@@ -1,6 +1,5 @@
 package com.bn1knb.newsblog.model.hateoas;
 
-import com.bn1knb.newsblog.controller.comments.CommentsController;
 import com.bn1knb.newsblog.controller.posts.PostsController;
 import com.bn1knb.newsblog.controller.users.UsersController;
 import com.bn1knb.newsblog.model.Post;
@@ -20,6 +19,6 @@ public class PostResource extends ResourceSupport {
         final Long postId = post.getId();
         add(linkTo(methodOn(PostsController.class).getPostById(postId)).withSelfRel());
         add(linkTo(methodOn(UsersController.class).getUserById(post.getUser().getId())).withRel("author"));
-        add(linkTo(methodOn(CommentsController.class).getAllCommentsOfPost(postId, Pageable.unpaged())).withRel("comments"));
+        add(linkTo(methodOn(PostsController.class).getAllCommentsOfPost(postId, Pageable.unpaged())).withRel("comments"));
     }
 }

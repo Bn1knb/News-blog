@@ -17,7 +17,7 @@ public class CommentDto implements Serializable {
 
     @NotBlank
     private String content;
-    private Byte[] attachedFiles;
+    private byte[] attachedFiles;
 
     public Comment toComment(User author, Post post) {
         return Comment

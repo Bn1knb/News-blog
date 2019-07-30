@@ -18,7 +18,7 @@ public class PostDto implements Serializable {
     private String headline;
     @Size(min = 10)
     private String content;
-    private Byte[] attachedFile;
+    private byte[] attachedFile;
 
     public Post toPost(User author) {
         return Post

@@ -8,8 +8,9 @@ import com.bn1knb.newsblog.model.Post;
 import com.bn1knb.newsblog.model.Role;
 import com.bn1knb.newsblog.model.State;
 import com.bn1knb.newsblog.model.User;
+import com.bn1knb.newsblog.model.hateoas.PostResource;
+import com.bn1knb.newsblog.model.hateoas.UserResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -37,16 +40,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void register(UserRegistrationDto userRegistrationDto) {
+    public User register(UserRegistrationDto userRegistrationDto) {
+        checkEmailAlreadyRegistered(userRegistrationDto.getEmail());
+        checkUsernameAlreadyRegistered(userRegistrationDto.getUsername());
+
         User user = userRegistrationDto.toUser(passwordEncoder);
         user.setRole(Role.ROLE_USER);
         user.setState(State.INACTIVE);
-        userRepository.save(user);
+
+        return userRepository.save(user);
     }
 
     @Override
-    public void save(User user) {
-        userRepository.save(user);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
     @Override
@@ -61,8 +68,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void update(Long id, UserRegistrationDto updatedDto, User currentUser) throws AccessDeniedException {
-        if (hasPermissionToUpdate(currentUser, id)) {
+    public User update(Long id, UserRegistrationDto updatedDto, boolean hasPermission) throws AccessDeniedException {
+        if (hasPermission) {
             User userToUpdate = findUserById(id);
             User updatedUser = updatedDto.toUser(passwordEncoder);
 
@@ -71,14 +78,14 @@ public class UserServiceImpl implements UserService {
             updatedUser.setCreatedAt(userToUpdate.getCreatedAt());
             updatedUser.setId(id);
 
-            save(updatedUser);
+            return save(updatedUser);
         } else {
             throw new AccessDeniedException(ACCESS_DENIED_MESSAGE);
         }
     }
 
     @Override             //TODO validate map values
-    public void patch(Map<String, String> fields, Long id) {
+    public User patch(Map<String, String> fields, Long id) {
         User user = findUserById(id);
 
         fields.forEach((k, v) -> {
@@ -98,7 +105,7 @@ public class UserServiceImpl implements UserService {
             ReflectionUtils.setField(field, user, v);
         });
 
-        save(user);
+        return save(user);
     }
 
     @Override
@@ -116,7 +123,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Post getPostOfUserWithId(User user, Long postId) {
+    public Post getPostOfUserWithId(Long userId, Long postId) {
+        User user = findUserById(userId);
+
         return user
                 .getPosts()
                 .stream()
@@ -129,19 +138,27 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public Page<Post> getAllPostOfUserByUserId(Long id, Pageable pageable) {
+    public List<PostResource> getAllPostOfUserByUserId(Long id, Pageable pageable) {
         User user = findUserById(id);
 
-        return postRepository.findAllByUser(pageable, user);
+        return postRepository
+                .findAllByUser(pageable, user)
+                .stream()
+                .map(PostResource::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<User> findAllPerPage(Pageable pageable) {
+    public List<UserResource> findAllPerPage(Pageable pageable) {
         if (userRepository.findAll(pageable).isEmpty()) {
             throw new PageNotFoundException();
         }
 
-        return userRepository.findAll(pageable);
+        return userRepository
+                .findAll(pageable)
+                .stream()
+                .map(UserResource::new)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -159,12 +176,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean hasPermissionToDelete(User currentUser, Long userToDeleteId) {
+    public boolean hasPermissionToDelete(String username, Long userToDeleteId) {
+        User currentUser = findUserByUsername(username);
         return currentUser.getId().equals(userToDeleteId) || currentUser.getRole().equals(Role.ROLE_ADMIN);
     }
 
     @Override
-    public boolean hasPermissionToUpdate(User currentUser, Long userToPatchId) {
+    public boolean hasPermissionToUpdate(String username, Long userToPatchId) {
+        User currentUser = findUserByUsername(username);
         return currentUser.getId().equals(userToPatchId);
     }
 }

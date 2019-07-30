@@ -39,15 +39,7 @@ public class AuthenticationRestController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResource> register(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
-        userService.checkEmailAlreadyRegistered(userRegistrationDto.getEmail());
-        userService.checkUsernameAlreadyRegistered(userRegistrationDto.getUsername());
-        userService.register(userRegistrationDto);
-
-        User user = userService
-                .findUserByUsername(
-                        userRegistrationDto
-                                .getUsername()
-                );
+        User user = userService.register(userRegistrationDto);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

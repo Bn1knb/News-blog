@@ -1,5 +1,6 @@
 package com.bn1knb.newsblog.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class Post implements Serializable {
     private Long id;
     private String headline;
     @Lob
-    private Byte[] attachedFile;
+    private byte[] attachedFile;
     @Lob
     private String content;
     private Date createdAt;
@@ -32,7 +33,7 @@ public class Post implements Serializable {
     @JsonIgnoreProperties(value = {"posts", "comments", "state", "role", "password", "email", "createdAt", "firstName", "lastName"})
     private User user;
     @OneToMany(mappedBy = "post")
-    @JsonIgnoreProperties(value = "post")
+    @JsonIgnore
     private List<Comment> comments;
 
 

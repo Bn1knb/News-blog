@@ -14,7 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,9 @@ public class PostServiceImpl implements com.bn1knb.newsblog.service.post.PostSer
     }
 
     @Override
-    public Post update(Long postToUpdateId, PostDto editedPostDto, User author) {
+    public Post update(Long postToUpdateId, PostDto editedPostDto, String authorName) {
+        User author = userService.findUserByUsername(authorName);
+
         if (isAuthor(postToUpdateId, author)) {
             Post postToUpdate = findPostById(postToUpdateId);
             Post editedPost = editedPostDto.toPost(postToUpdate.getUser());
@@ -95,9 +99,15 @@ public class PostServiceImpl implements com.bn1knb.newsblog.service.post.PostSer
     }
 
     @Override
-    public Post save(PostDto postDto, String authorName) {
+    public Post save(PostDto postDto, String authorName, MultipartFile attachedFile) throws IOException {
         User author = userService.findUserByUsername(authorName);
+
+        if (!attachedFile.isEmpty()) {
+            postDto.setAttachedFile(attachedFile.getBytes());
+        }
+
         Post newPost = postDto.toPost(author);
+
         return postRepository.save(newPost);
     }
 
@@ -116,7 +126,8 @@ public class PostServiceImpl implements com.bn1knb.newsblog.service.post.PostSer
     }
 
     @Override
-    public boolean hasPermissionToDelete(Long postId, User currentUser) {
+    public boolean hasPermissionToDelete(Long postId, String username) {
+        User currentUser = userService.findUserByUsername(username);
         Post postToModify = findPostById(postId);
         return postToModify
                 .getUser()

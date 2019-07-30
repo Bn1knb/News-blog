@@ -1,6 +1,5 @@
 package com.bn1knb.newsblog.service.comment;
 
-import com.bn1knb.newsblog.controller.comments.CommentsController;
 import com.bn1knb.newsblog.dao.CommentRepository;
 import com.bn1knb.newsblog.dto.CommentDto;
 import com.bn1knb.newsblog.exception.CommentNotFoundException;
@@ -12,17 +11,14 @@ import com.bn1knb.newsblog.model.hateoas.CommentResource;
 import com.bn1knb.newsblog.service.post.PostService;
 import com.bn1knb.newsblog.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.Link;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -42,11 +38,6 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment findCommentById(Long id) {
         return commentRepository.findById(id).orElseThrow(CommentNotFoundException::new);
-    }
-
-    @Override
-    public Page<Comment> findAllCommentsOfUser(User user, Pageable pageable) {
-        return commentRepository.findAllByUser(user, pageable);
     }
 
     @Override
@@ -70,7 +61,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment update(Long id, CommentDto editedCommentDto, User user) {
+    public Comment update(Long id, CommentDto editedCommentDto, String username) {
+        User user = userService.findUserByUsername(username);
         if (isAuthor(id, user)) {
             Comment commentToUpdate = findCommentById(id);
             Comment editedComment = editedCommentDto.toComment(commentToUpdate.getUser(), commentToUpdate.getPost());
@@ -92,7 +84,10 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment save(CommentDto commentDto, Long postId, String authorName) {
+    public Comment save(CommentDto commentDto, MultipartFile attachedFile, Long postId, String authorName) throws IOException {
+        if (!attachedFile.isEmpty()) {
+            commentDto.setAttachedFiles(attachedFile.getBytes());
+        }
         Post currentPost = postService.findPostById(postId);
         User author = userService.findUserByUsername(authorName);
         Comment newComment = commentDto.toComment(author, currentPost);
@@ -106,7 +101,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public boolean hasPermissionToDelete(Long commentId, User currentUser) {
+    public boolean hasPermissionToDelete(Long commentId, String username) {
+        User currentUser = userService.findUserByUsername(username);
         Comment currentComment = findCommentById(commentId);
         return currentComment
                 .getUser()
